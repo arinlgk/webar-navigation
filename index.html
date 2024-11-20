@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebAR Navigation</title>
+    <!-- Import A-Frame and AR.js -->
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://rawcdn.githack.com/AR-js-org/AR.js/3.3.2/aframe/build/aframe-ar-nft.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll("[gps-entity-place]").forEach((place) => {
+                place.addEventListener("click", () => {
+                    alert("You clicked on a marker!");
+                });
+            });
+        });
+    </script>
+</head>
+<body style="margin: 0; overflow: hidden;">
+    <!-- AR.js scene -->
+    <a-scene embedded arjs="sourceType: webcam; gpsMinDistance: 10; gpsTimeInterval: 1000;">
+        <!-- Camera setup -->
+        <a-camera gps-camera rotation-reader></a-camera>
+
+        <!-- Location-based marker for Location A (Red Box) -->
+        <a-entity 
+            gps-entity-place="latitude: 40.748817; longitude: -73.985428" 
+            geometry="primitive: box; height: 2; width: 2; depth: 2" 
+            material="color: red;">
+            <a-text 
+                value="Location A" 
+                position="0 2.5 0" 
+                align="center" 
+                color="white">
+            </a-text>
+        </a-entity>
+        
+        <!-- Arrow Marker for Navigation (Blue Cone) -->
+        <a-entity 
+            gps-entity-place="latitude: 40.748817; longitude: -73.985428" 
+            geometry="primitive: cone; radiusBottom: 0.1; radiusTop: 0; height: 1" 
+            material="color: blue"
+            rotation="0 180 0"
+            scale="1 1 1">
+        </a-entity>
+
+        <!-- GLTF Model at Location A -->
+        <a-entity 
+            gps-entity-place="latitude: 40.748817; longitude: -73.985428" 
+            gltf-model="https://example.com/your-model.glb" 
+            scale="2 2 2"
+            animation-mixer>
+        </a-entity>
+
+        <!-- Location-based marker for Location B -->
+        <a-entity 
+            gps-entity-place="latitude: 40.749641; longitude: -73.987272" 
+            gltf-model="https://example.com/your-model.glb" 
+            scale="2 2 2"
+            animation-mixer>
+        </a-entity>
+    </a-scene>
+</body>
+</html>
