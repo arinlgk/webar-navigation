@@ -78,7 +78,7 @@
 
             // Event listener for the search button
             searchButton.addEventListener('click', () => {
-                const destinationName = destinationInput.value;
+                const destinationName = destinationInput.value.trim();
                 const destinationCoords = locations[destinationName];
 
                 if (destinationCoords) {
@@ -86,7 +86,7 @@
 
                     // Set the arrow position and visibility
                     arrow.setAttribute('position', `0 0 -5`); // Adjust position as needed
-                    arrow.setAttribute('visible', true // Rotate the arrow to point towards the destination
+                    arrow.setAttribute('visible', true); // Rotate the arrow to point towards the destination
                     const heading = calculateHeading(latitude, longitude);
                     arrow.setAttribute('rotation', `0 ${heading} 0`);
                 } else {
