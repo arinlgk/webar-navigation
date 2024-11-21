@@ -11,6 +11,7 @@
         body {
             margin: 0;
             overflow: hidden;
+            font-family: Arial, sans-serif;
         }
         #searchContainer {
             position: absolute;
@@ -20,14 +21,37 @@
             background: rgba(255, 255, 255, 0.8);
             padding: 10px;
             border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
         #destination {
             padding: 5px;
             width: 200px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
         #searchButton {
             padding: 5px 10px;
             cursor: pointer;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        #searchButton:hover {
+            background-color: #0056b3;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 600px) {
+            #searchContainer {
+                width: 90%;
+                left: 5%;
+                top: 5px;
+            }
+            #destination {
+                width: calc(100% - 20px);
+            }
         }
     </style>
     <script>
@@ -74,8 +98,6 @@
 
             // Function to calculate the heading towards the destination
             function calculateHeading(lat, lon) {
-                // Here you can implement the calculation of heading
-                // For simplicity, this example returns a fixed value
                 const userLat = 3.5424105381833333; // Replace with actual user's latitude
                 const userLon = 103.42519353920233; // Replace with actual user's longitude
 
@@ -164,8 +186,7 @@
 
         <a-entity 
             gps-entity-place="latitude: 3.541152253948052; longitude: 103.42994164632783" 
-            geometry="primitive: box; height: 2; width: 2; depth: 2" 
-            material="color: purple;">
+            geometry="primitive: box; height: 2; width: 2; depth: 2" material="color: purple;">
             <a-text 
                 value="Dewan Serbaguna" 
                 position="0 2.5 0" 
@@ -183,7 +204,6 @@
                 position="0 2.5 0" 
                 align="center" 
                 color="white">
-            ```html
             </a-text>
         </a-entity>
 
