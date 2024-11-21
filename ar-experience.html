@@ -68,13 +68,38 @@
                 "Faculty of Computing": { latitude: 3.5470578908910624, longitude: 103.42766713303656 },
                 "Ditec UMPSA": { latitude: 3.5444022329295355, longitude: 103.43162607338732 },
                 "FTKEE Cafe": { latitude: 3.5395406456778633, longitude: 103.4310681740305 },
-                "PAP": { latitude: 3.539176561005007, longitude: 103.42781733683893 }, // Fixed comma
-                "Dewan Serbaguna": { latitude: 3.541152253948052, longitude: 103.42994164632783 }, // Fixed comma
+                "PAP": { latitude: 3.539176561005007, longitude: 103.42781733683893 },
+                "Dewan Serbaguna": { latitude: 3.541152253948052, longitude: 103.42994164632783 },
                 "He & She": { latitude: 3.5389632623719502, longitude: 103.42746000826024 },
                 "KK5 Basketball Court": { latitude: 3.5382039072479077, longitude: 103.42795100526111 },
                 "Library": { latitude: 3.5427684944699585, longitude: 103.43133217957656 },
                 "University Health Centre": { latitude: 3.5487033301435926, longitude: 103.43386164772174 }
             };
+
+            let userLatitude, userLongitude;
+
+            // Function to update user's location
+            function updateLocation() {
+                if (navigator.geolocation) {
+ navigator.geolocation.getCurrentPosition(position => {
+                        userLatitude = position.coords.latitude;
+                        userLongitude = position.coords.longitude;
+                        console.log(`User 's Location: ${userLatitude}, ${userLongitude}`);
+                    }, error => {
+                        console.error("Error getting location: ", error);
+                    });
+                } else {
+                    alert("Geolocation is not supported by this browser.");
+                }
+            }
+
+            // Watch for changes in user's location
+            navigator.geolocation.watchPosition(position => {
+                userLatitude = position.coords.latitude;
+                userLongitude = position.coords.longitude;
+            }, error => {
+                console.error("Error watching location: ", error);
+            });
 
             // Event listener for the search button
             searchButton.addEventListener('click', () => {
@@ -85,11 +110,11 @@
                     const { latitude, longitude } = destinationCoords;
 
                     // Set the arrow position and visibility
-                    arrow.setAttribute('position', `0 0 -5`); // Adjust position as needed
+                    arrow.setAttribute('position', `0 0.5 -5`); // Adjust position to be above the ground
                     arrow.setAttribute('visible', true); // Show the arrow
 
                     // Rotate the arrow to point towards the destination
-                    const heading = calculateHeading(latitude, longitude);
+                    const heading = calculateHeading(userLatitude, userLongitude, latitude, longitude);
                     arrow.setAttribute('rotation', `0 ${heading} 0`);
                 } else {
                     alert('Location not found. Please try again.');
@@ -97,18 +122,18 @@
             });
 
             // Function to calculate the heading towards the destination
-            function calculateHeading(lat, lon) {
-                const userLat = 3.5424105381833333; // Replace with actual user's latitude
-                const userLon = 103.42519353920233; // Replace with actual user's longitude
-
+            function calculateHeading(userLat, userLon, destLat, destLon) {
                 // Convert degrees to radians
                 const toRadians = (degrees) => degrees * (Math.PI / 180);
                 
-                const y = Math.sin(toRadians(lon - userLon)) * Math.cos(toRadians(lat));
-                const x = Math.cos(toRadians(userLat)) * Math.sin(toRadians(lat)) - Math.sin(toRadians(userLat)) * Math.cos(toRadians(lat)) * Math.cos(toRadians(lon - userLon));
+                const y = Math.sin(toRadians(destLon - userLon)) * Math.cos(toRadians(destLat));
+                const x = Math.cos(toRadians(userLat)) * Math.sin(toRadians(destLat)) - Math.sin(toRadians(userLat)) * Math.cos(toRadians(destLat)) * Math.cos(toRadians(destLon - userLon));
                 const heading = Math.atan2(y, x) * (180 / Math.PI); // Convert radians to degrees
                 return (heading + 360) % 360; // Normalize to 0-360 degrees
             }
+
+            // Initial location update
+            updateLocation();
         });
     </script>
 </head>
@@ -123,8 +148,16 @@
             fov="90"> <!-- Adjusted field of view for better visibility -->
         </a-camera>
 
+        <!-- Ground Plane -->
+        <a-entity 
+            geometry="primitive: plane; width: 100; height: 100" 
+            material="color: #7BC8A4; opacity: 0.5" 
+            rotation="-90 0 0" 
+            position="0 0 0">
+        </a-entity>
+
         <!-- Navigation Arrow -->
-        <a-entity id="navigation-arrow" geometry="primitive: cone; radiusBottom: 0.1; radiusTop: 0; height: 1" material="color: yellow" visible="false" position="0 0 -5" rotation="0 0 0"></a-entity>
+        <a-entity id="navigation-arrow" geometry="primitive: cone; radiusBottom: 0.1; radiusTop: 0; height: 1" material="color: yellow" visible="false" position="0 0.5 -5" rotation="0 0 0"></a-entity>
 
         <!-- Define AR locations -->
         <a-entity 
@@ -177,7 +210,7 @@
 
         <a-entity 
             gps-entity-place="latitude: 3.539176561005007; longitude: 103.42781733683893" 
-            geometry="primitive: box; height: 2; width:  2; depth: 2" 
+            geometry="primitive: box; height: 2; width: 2; depth: 2" 
             material="color: orange;">
             <a-text 
                 value="PAP" 
@@ -189,7 +222,8 @@
 
         <a-entity 
             gps-entity-place="latitude: 3.541152253948052; longitude: 103.42994164632783" 
-            geometry="primitive: box; height: 2; width: 2; depth: 2" material="color: purple;">
+            geometry="primitive: box; height: 2; width: 2; depth: 2" 
+            material="color: purple;">
             <a-text 
                 value="Dewan Serbaguna" 
                 position="0 2.5 0" 
