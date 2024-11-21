@@ -19,13 +19,13 @@
 </head>
 <body style="margin: 0; overflow: hidden;">
     <!-- AR.js scene -->
-    <a-scene embedded arjs="sourceType: webcam; gpsMinDistance: 10; gpsTimeInterval: 1000;">
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: true; gpsMinDistance: 10; gpsTimeInterval: 1000;">
         <!-- Camera setup -->
         <a-camera gps-camera rotation-reader></a-camera>
 
         <!-- Location-based marker for Location A (Red Box) -->
         <a-entity 
-            gps-entity-place="latitude: 40.748817; longitude: -73.985428" 
+            gps-entity-place="latitude: 3.730990; longitude: 103.314580" 
             geometry="primitive: box; height: 2; width: 2; depth: 2" 
             material="color: red;">
             <a-text 
@@ -38,7 +38,7 @@
         
         <!-- Arrow Marker for Navigation (Blue Cone) -->
         <a-entity 
-            gps-entity-place="latitude: 40.748817; longitude: -73.985428" 
+            gps-entity-place="latitude: 3.730990; longitude: 103.314580" 
             geometry="primitive: cone; radiusBottom: 0.1; radiusTop: 0; height: 1" 
             material="color: blue"
             rotation="0 180 0"
@@ -47,7 +47,7 @@
 
         <!-- GLTF Model at Location A -->
         <a-entity 
-            gps-entity-place="latitude: 40.748817; longitude: -73.985428" 
+            gps-entity-place="latitude: 3.730990; longitude: 103.314580" 
             gltf-model="direction_arrow.glb" 
             scale="2 2 2"
             animation-mixer>
@@ -55,9 +55,9 @@
 
         <!-- Location-based marker for Location B -->
         <a-entity 
-            gps-entity-place="latitude: 40.749641; longitude: -73.987272" 
+            gps-entity-place="latitude: 3.730990; longitude: 103.314580" 
             gltf-model="direction_arrow.glb" 
-            scale="2 2 2"
+            scale="5 5 5"
             animation-mixer>
         </a-entity>
     </a-scene>
