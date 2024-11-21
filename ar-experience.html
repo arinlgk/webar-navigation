@@ -7,15 +7,58 @@
     <!-- Import A-Frame and AR.js -->
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://rawcdn.githack.com/AR-js-org/AR.js/3.3.2/aframe/build/aframe-ar-nft.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        #searchContainer {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 9999;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #destination {
+            padding: 5px;
+            width: 200px;
+        }
+        #searchButton {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const arrow = document.getElementById('navigation-arrow');
+            const searchButton = document.getElementById('searchButton');
+            const destinationInput = document.getElementById('destination');
+
             arrow.setAttribute('visible', false); // Hide the arrow initially
 
-            document.querySelectorAll("[gps-entity-place]").forEach((place) => {
-                place.addEventListener("click", () => {
-                    const coords = place.getAttribute('gps-entity-place');
-                    const [latitude, longitude] = coords.split('; ').map(coord => parseFloat(coord.split(': ')[1]));
+            // Define the locations with their GPS coordinates
+            const locations = {
+                "UMPSA Main Entrance": { latitude: 3.5424105381833333, longitude: 103.42519353920233 },
+                "Faculty of Computing": { latitude: 3.5470578908910624, longitude: 103.42766713303656 },
+                "Ditec UMPSA": { latitude: 3.5444022329295355, longitude: 103.43162607338732 },
+                "FTKEE Cafe": { latitude: 3.5395406456778633, longitude: 103.4310681740305 },
+                "PAP": { latitude: 3.539176561005007, longitude: 103.42781733683893 },
+                "Dewan Serbaguna": { latitude: 3.541152253948052, longitude: 103.42994164632783 },
+                "He & She": { latitude: 3.5389632623719502, longitude: 103.42746000826024 },
+                "KK5 Basketball Court": { latitude: 3.5382039072479077, longitude: 103.42795100526111 },
+                "Library": { latitude: 3.5427684944699585, longitude: 103.43133217957656 },
+                "University Health Centre": { latitude: 3.5487033301435926, longitude: 103.43386164772174 }
+            };
+
+            // Event listener for the search button
+            searchButton.addEventListener('click', () => {
+                const destinationName = destinationInput.value;
+                const destinationCoords = locations[destinationName];
+
+                if (destinationCoords) {
+                    const { latitude, longitude } = destinationCoords;
 
                     // Set the arrow position and visibility
                     arrow.setAttribute('position', `0 0 -5`); // Adjust position as needed
@@ -24,19 +67,27 @@
                     // Rotate the arrow to point towards the destination
                     const heading = calculateHeading(latitude, longitude);
                     arrow.setAttribute('rotation', `0 ${heading} 0`);
-                });
+                } else {
+                    alert('Location not found. Please try again.');
+                }
             });
-        });
 
-        // Function to calculate the heading towards the destination
-        function calculateHeading(lat, lon) {
-            // Here you can implement the calculation of heading
-            // For simplicity, this example returns a fixed value
-            return 0; // Replace with actual calculation based on user's location
-        }
+            // Function to calculate the heading towards the destination
+            function calculateHeading(lat, lon) {
+                // Here you can implement the calculation of heading
+                // For simplicity, this example returns a fixed value
+                const userLat = 3.5424105381833333; // Replace with actual user's latitude
+                const userLon = 103.42519353920233; // Replace with actual user's longitude
+
+                const y = Math.sin(lon - userLon) * Math.cos(lat);
+                const x = Math.cos(userLat) * Math.sin(lat) - Math.sin(userLat) * Math.cos(lat) * Math.cos(lon - userLon);
+                const heading = Math.atan2(y, x) * (180 / Math.PI); // Convert radians to degrees
+                return (heading + 360) % 360; // Normalize to 0-360 degrees
+            }
+        });
     </script>
 </head>
-<body style="margin: 0; overflow: hidden;">
+<body>
     <!-- AR.js scene -->
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: true; gpsMinDistance: 10; gpsTimeInterval: 1000;">
         <!-- Camera setup -->
@@ -50,7 +101,7 @@
         <!-- Navigation Arrow -->
         <a-entity id="navigation-arrow" geometry="primitive: cone; radiusBottom: 0.1; radiusTop: 0; height: 1" material="color: yellow" visible="false" position="0 0 -5" rotation="0 0 0"></a-entity>
 
-        <!-- UMPSA Main Entrance -->
+        <!-- Define AR locations -->
         <a-entity 
             gps-entity-place="latitude: 3.5424105381833333; longitude: 103.42519353920233" 
             geometry="primitive: box; height: 2; width: 2; depth: 2" 
@@ -63,7 +114,6 @@
             </a-text>
         </a-entity>
 
-        <!-- Faculty of Computing -->
         <a-entity 
             gps-entity-place="latitude: 3.5470578908910624; longitude: 103.42766713303656" 
             geometry="primitive: box; height: 2; width: 2; depth: 2" 
@@ -76,9 +126,8 @@
             </a-text>
         </a-entity>
 
-        <!-- Ditec UMPSA -->
         <a-entity 
-            gps-entity-place="latitude: 3.5444022329295355; longitude: 103. 43162607338732" 
+            gps-entity-place="latitude: 3.5444022329295355; longitude: 103.43162607338732" 
             geometry="primitive: box; height: 2; width: 2; depth: 2" 
             material="color: blue;">
             <a-text 
@@ -89,7 +138,6 @@
             </a-text>
         </a-entity>
 
-        <!-- FTKEE Cafe -->
         <a-entity 
             gps-entity-place="latitude: 3.5395406456778633; longitude: 103.4310681740305" 
             geometry="primitive: box; height: 2; width: 2; depth: 2" 
@@ -102,7 +150,6 @@
             </a-text>
         </a-entity>
 
-        <!-- PAP -->
         <a-entity 
             gps-entity-place="latitude: 3.539176561005007; longitude: 103.42781733683893" 
             geometry="primitive: box; height: 2; width: 2; depth: 2" 
@@ -115,7 +162,6 @@
             </a-text>
         </a-entity>
 
-        <!-- Dewan Serbaguna -->
         <a-entity 
             gps-entity-place="latitude: 3.541152253948052; longitude: 103.42994164632783" 
             geometry="primitive: box; height: 2; width: 2; depth: 2" 
@@ -128,7 +174,6 @@
             </a-text>
         </a-entity>
 
-        <!-- He & She -->
         <a-entity 
             gps-entity-place="latitude: 3.5389632623719502; longitude: 103.42746000826024" 
             geometry="primitive: box; height: 2; width: 2; depth: 2" 
@@ -138,10 +183,10 @@
                 position="0 2.5 0" 
                 align="center" 
                 color="white">
+            ```html
             </a-text>
         </a-entity>
 
-        <!-- KK5 Basketball Court -->
         <a-entity 
             gps-entity-place="latitude: 3.5382039072479077; longitude: 103.42795100526111" 
             geometry="primitive: box; height: 2; width: 2; depth: 2" 
@@ -154,7 +199,6 @@
             </a-text>
         </a-entity>
 
-        <!-- Library -->
         <a-entity 
             gps-entity-place="latitude: 3.5427684944699585; longitude: 103.43133217957656" 
             geometry="primitive: box; height: 2; width: 2; depth: 2" 
@@ -167,7 +211,6 @@
             </a-text>
         </a-entity>
 
-        <!-- University Health Centre -->
         <a-entity 
             gps-entity-place="latitude: 3.5487033301435926; longitude: 103.43386164772174" 
             geometry="primitive: box; height: 2; width: 2; depth: 2" 
@@ -180,5 +223,10 @@
             </a-text>
         </a-entity>
     </a-scene>
+
+    <div id="searchContainer">
+        <input type="text" id="destination" placeholder="Enter destination">
+        <button id="searchButton">Search</button>
+    </div>
 </body>
 </html>
