@@ -1,1 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UMPSA AR Navigation</title>
+    <!-- Import A-Frame and AR.js -->
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://rawcdn.githack.com/AR-js-org/AR.js/3.3.2/aframe/build/aframe-ar-nft.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const arrow = document.getElementById('navigation-arrow');
+            arrow.setAttribute('visible', false); // Hide the arrow initially
 
+            document.querySelectorAll("[gps-entity-place]").forEach((place) => {
+                place.addEventListener("click", () => {
+                    const coords = place.getAttribute('gps-entity-place');
+                    const [latitude, longitude] = coords.split('; ').map(coord => parseFloat(coord.split(': ')[1]));
+
+                    // Set the arrow position and visibility
+                    arrow.setAttribute('position', `0 0 -5`); // Adjust position as needed
+                    arrow.setAttribute('visible', true);
+                    
+                    // Rotate the arrow to point towards the destination
+                    const heading = calculateHeading(latitude, longitude);
+                    arrow.setAttribute('rotation', `0 ${heading} 0`);
+                });
+            });
+        });
+
+        // Function to calculate the heading towards the destination
+        function calculateHeading(lat, lon) {
+            // Here you can implement the calculation of heading
+            // For simplicity, this example returns a fixed value
+            return 0; // Replace with actual calculation based on user's location
+        }
+    </script>
+</head>
+<body style="margin: 0; overflow: hidden;">
+    <!-- AR.js scene -->
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: true; gpsMinDistance: 10; gpsTimeInterval: 1000;">
+        <!-- Camera setup -->
+        <a-camera 
+            gps-camera 
+            rotation-reader 
+            position="0 1.6 0" 
+            fov="80">
+        </a-camera>
+
+        <!-- Navigation Arrow -->
+        <a-entity id="navigation-arrow" geometry="primitive: cone; radiusBottom: 0.1; radiusTop: 0; height: 1" material="color: yellow" visible="false" position="0 0 -5" rotation="0 0 0"></a-entity>
+
+        <!-- UMPSA Main Entrance -->
+        <a-entity 
+            gps-entity-place="latitude: 3.5424105381833333; longitude: 103.42519353920233" 
+            geometry="primitive: box; height: 2; width: 2; depth: 2" 
+            material="color: red;">
+            <a-text 
+                value="UMPSA Main Entrance" 
+                position="0 2.5 0" 
+                align="center" 
+                color="white">
+            </a-text>
+        </a-entity>
+
+        <!-- Faculty of Computing -->
+        <a-entity 
+            gps-entity-place="latitude: 3.5470578908910624; longitude: 103.42766713303656" 
+            geometry="primitive: box; height: 2; width: 2; depth: 2" 
+            material="color: green;">
+            <a-text 
+                value="Faculty of Computing" 
+                position="0 2.5 0" 
+                align="center" 
+                color="white">
+            </a-text>
+        </a-entity>
+
+        <!-- Ditec UMPSA -->
+        <a-entity 
+            gps-entity-place="latitude: 3.5444022329295355; longitude: 103. 43162607338732" 
+            geometry="primitive: box; height: 2; width: 2; depth: 2" 
+            material="color: blue;">
+            <a-text 
+                value="Ditec UMPSA" 
+                position="0 2.5 0" 
+                align="center" 
+                color="white">
+            </a-text>
+        </a-entity>
+
+        <!-- FTKEE Cafe -->
+        <a-entity 
+            gps-entity-place="latitude: 3.5395406456778633; longitude: 103.4310681740305" 
+            geometry="primitive: box; height: 2; width: 2; depth: 2" 
+            material="color: yellow;">
+            <a-text 
+                value="FTKEE Cafe" 
+                position="0 2.5 0" 
+                align="center" 
+                color="white">
+            </a-text>
+        </a-entity>
+
+        <!-- PAP -->
+        <a-entity 
+            gps-entity-place="latitude: 3.539176561005007; longitude: 103.42781733683893" 
+            geometry="primitive: box; height: 2; width: 2; depth: 2" 
+            material="color: orange;">
+            <a-text 
+                value="PAP" 
+                position="0 2.5 0" 
+                align="center" 
+                color="white">
+            </a-text>
+        </a-entity>
+
+        <!-- Dewan Serbaguna -->
+        <a-entity 
+            gps-entity-place="latitude: 3.541152253948052; longitude: 103.42994164632783" 
+            geometry="primitive: box; height: 2; width: 2; depth: 2" 
+            material="color: purple;">
+            <a-text 
+                value="Dewan Serbaguna" 
+                position="0 2.5 0" 
+                align="center" 
+                color="white">
+            </a-text>
+        </a-entity>
+
+        <!-- He & She -->
+        <a-entity 
+            gps-entity-place="latitude: 3.5389632623719502; longitude: 103.42746000826024" 
+            geometry="primitive: box; height: 2; width: 2; depth: 2" 
+            material="color: pink;">
+            <a-text 
+                value="He & She" 
+                position="0 2.5 0" 
+                align="center" 
+                color="white">
+            </a-text>
+        </a-entity>
+
+        <!-- KK5 Basketball Court -->
+        <a-entity 
+            gps-entity-place="latitude: 3.5382039072479077; longitude: 103.42795100526111" 
+            geometry="primitive: box; height: 2; width: 2; depth: 2" 
+            material="color: cyan;">
+            <a-text 
+                value="KK5 Basketball Court" 
+                position="0 2.5 0" 
+                align="center" 
+                color="white">
+            </a-text>
+        </a-entity>
+
+        <!-- Library -->
+        <a-entity 
+            gps-entity-place="latitude: 3.5427684944699585; longitude: 103.43133217957656" 
+            geometry="primitive: box; height: 2; width: 2; depth: 2" 
+            material="color: brown;">
+            <a-text 
+                value="Library" 
+                position="0 2.5 0" 
+                align="center" 
+                color="white">
+            </a-text>
+        </a-entity>
+
+        <!-- University Health Centre -->
+        <a-entity 
+            gps-entity-place="latitude: 3.5487033301435926; longitude: 103.43386164772174" 
+            geometry="primitive: box; height: 2; width: 2; depth: 2" 
+            material="color: gray;">
+            <a-text 
+                value="University Health Centre" 
+                position="0 2.5 0" 
+                align="center" 
+                color="white">
+            </a-text>
+        </a-entity>
+    </a-scene>
+</body>
+</html>
