@@ -101,8 +101,11 @@
                 const userLat = 3.5424105381833333; // Replace with actual user's latitude
                 const userLon = 103.42519353920233; // Replace with actual user's longitude
 
-                const y = Math.sin(lon - userLon) * Math.cos(lat);
-                const x = Math.cos(userLat) * Math.sin(lat) - Math.sin(userLat) * Math.cos(lat) * Math.cos(lon - userLon);
+                // Convert degrees to radians
+                const toRadians = (degrees) => degrees * (Math.PI / 180);
+                
+                const y = Math.sin(toRadians(lon - userLon)) * Math.cos(toRadians(lat));
+                const x = Math.cos(toRadians(userLat)) * Math.sin(toRadians(lat)) - Math.sin(toRadians(userLat)) * Math.cos(toRadians(lat)) * Math.cos(toRadians(lon - userLon));
                 const heading = Math.atan2(y, x) * (180 / Math.PI); // Convert radians to degrees
                 return (heading + 360) % 360; // Normalize to 0-360 degrees
             }
