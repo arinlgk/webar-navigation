@@ -1,297 +1,92 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UMPSA AR Navigation</title>
+    <title>AR Navigation with Google Maps</title>
+    
     <!-- Import A-Frame and AR.js -->
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://rawcdn.githack.com/AR-js-org/AR.js/3.3.2/aframe/build/aframe-ar-nft.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    
+    <!-- Import Google Maps JavaScript API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAOTV66tI0QlIdaPfmKqRGe1EAidmfV2bY"></script>
+
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
-        }
-        #searchContainer {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 9999;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        #destination {
-            padding: 10px;
-            width: 250px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-        #searchButton {
-            padding: 10px 20px;
-            cursor: pointer;
-            border: none;
-            background-color: #007BFF;
-            color: white;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        #searchButton:hover {
-            background-color: #0056b3;
-        }
-        #eta {
-            margin-top: 10px;
-            font-size: 16px;
-            color: #333;
-        }
-        
-        /* Responsive Styles */
-        @media (max-width: 600px) {
-            #searchContainer {
-                width: 90%;
-                left: 5%;
-                top: 5px;
-            }
-            #destination {
-                width: calc(100% - 20px);
-            }
-        }
+        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
+        #map { height: 100px; width: 100%; position: absolute; top: 10px; z-index: 999; }
+        #info { position: absolute; bottom: 10px; left: 10px; z-index: 999; color: white; font-size: 1.2em; }
     </style>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const searchButton = document.getElementById('searchButton');
-            const destinationInput = document.getElementById('destination');
-            const etaDisplay = document.getElementById('eta');
-
-            // Define the locations with their GPS coordinates
-            const locations = {
-                "UMPSA Main Entrance": { latitude: 3.5424105381833333, longitude: 103.42519353920233 },
-                "Faculty of Computing": { latitude: 3.5470578908910624, longitude: 103.42766713303656 },
-                "Ditec UMPSA": { latitude: 3.5444022329295355, longitude: 103.43162607338732 },
-                "FTKEE Cafe": { latitude: 3.5395406456778633, longitude: 103.4310681740305 },
-                "PAP": { latitude: 3.539176561005007, longitude: 103.42781733683893 },
-                "Dewan Serbaguna": { latitude: 3.541152253948052, longitude: 103.42994164632783 },
-                "He & She": { latitude: 3.5389632623719502, longitude: 103.42746000826024 },
-                "KK5 Basketball Court": { latitude: 3.5382039072479077, longitude: 103.42795100526111 },
-                "Library": { latitude: 3.5427684944699585, longitude: 103.43133217957656 },
-                "University Health Centre": { latitude: 3.5487033301435926, longitude: 103.43386164772174 }
-            };
-
-            let userLatitude, userLongitude;
-
-            // Function to update user's location
-            function updateLocation() {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(position => {
-                        userLatitude = position.coords.latitude;
-                        userLongitude = position.coords.longitude;
-                        console.log(`User's Location: ${userLatitude}, ${userLongitude}`);
-                    }, error => {
-                        console.error("Error getting location: ", error);
-                        // Use mock data for testing purposes
-                        userLatitude = 3.5424105381833333;
-                        userLongitude = 103.42519353920233;
-                        console.log("Using mock location data.");
-                    });
-                } else {
-                    alert("Geolocation is not supported by this browser.");
-                }
-            }
-
-            // Watch for changes in user's location
-            navigator.geolocation.watchPosition(position => {
-                userLatitude = position.coords.latitude;
-                userLongitude = position.coords.longitude;
-            }, error => {
-                console.error("Error watching location: ", error);
-                // Use mock data for testing purposes
-                userLatitude = 3.5424105381833333;
-                userLongitude = 103.42519353920233;
-                console.log("Using mock location data.");
-            });
-
-            // Event listener for the search button
-            searchButton.addEventListener('click', () => {
-                const destinationName = destinationInput.value.trim();
-                const destinationCoords = locations[destinationName];
-
-                if (destinationCoords) {
-                    const { latitude, longitude } = destinationCoords;
-
-                    // Calculate and display ETA
-                    const distance = calculateDistance(userLatitude, userLongitude, latitude, longitude);
-                    const speed = 5; // Assume walking speed in km/h
-                    const eta = distance / speed;
-                    etaDisplay.textContent = `ETA: ${eta.toFixed(2)} hours`;
-
-                    // Update arrow path dynamically
-                    updateArrowPath(latitude, longitude);
-                } else {
-                    alert('Location not found. Please try again.');
-                }
-            });
-
-            // Function to calculate the distance between two coordinates
-            function calculateDistance(lat1, lon1, lat2, lon2) {
-                const R = 6371; // Radius of the Earth in km
-                const dLat = (lat2 - lat1) * (Math.PI / 180);
-                const dLon = (lon2 - lon1) * (Math.PI / 180);
-                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                          Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-                          Math.sin(dLon / 2) * Math.sin(dLon / 2);
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                const distance = R * c; // Distance in km
-                return distance;
-            }
-
-            // Function to update arrow path dynamically
-            function updateArrowPath(destLat, destLon) {
-                const arrowContainer = document.getElementById('arrow-container');
-                arrowContainer.innerHTML = ''; // Clear previous arrows
-
-                const interval = setInterval(() => {
-                    if (userLatitude && userLongitude) {
-                        const distance = calculateDistance(userLatitude, userLongitude, destLat, destLon);
-                        if (distance < 0.05) { // If the user is within 50 meters of the destination
-                            clearInterval(interval);
-                            etaDisplay.textContent = 'You have arrived at your destination.';
-                        } else {
-                            // Create a new arrow element
-                            const arrow = document.createElement('a-image');
-                            arrow.setAttribute('src', 'https://cdn-icons-png.flaticon.com/512/60/60758.png'); // Replace with actual path to arrow icon
-                            arrow.setAttribute('gps-entity-place', `latitude: ${userLatitude}; longitude: ${userLongitude}`);
-                            arrow.setAttribute('scale', '5 5 5');
-                            arrowContainer.appendChild(arrow);
-
-                            // Update user's location for the next arrow
-                            userLatitude += 0.0001; // Adjust this value to control the spacing between arrows
-                            userLongitude += 0.0001; // Adjust this value to control the spacing between arrows
-                        }
-                    }
-                }, 1000); // Update every second
-            }
-
-            // Initial location update
-            updateLocation();
-        });
-    </script>
 </head>
-<body class="relative h-screen w-screen overflow-hidden bg-gray-800">
-    <!-- AR.js scene -->
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: true; gpsMinDistance: 10; gpsTimeInterval: 1000;">
+<body>
+    <!-- AR.js Scene -->
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false; gpsMinDistance: 10;">
         <!-- Camera setup -->
-        <a-camera gps-camera rotation-reader position="0 1.6 0" fov="90"></a-camera>
+        <a-camera gps-camera rotation-reader></a-camera>
 
-        <!-- Arrow Container -->
-        <a-entity id="arrow-container"></a-entity>
-
-        <!-- Define AR locations -->
-        <a-entity gps-entity-place="latitude: 3.5424105381833333; longitude: 103.42519353920233" geometry="primitive: box; height: 2; width: 2; depth: 2" material="color: red;">
-            <a-text value="UMPSA Main Entrance" position="0 2.5 0" align="center" color="white"></a-text>
-        </a-entity>
-
-        <a-entity gps-entity-place="latitude: 3.5470578908910624; longitude: 103.42766713303656" geometry="primitive: box; height: 2; width: 2; depth: 2" material="color: green;">
-            <a-text value="Faculty of Computing" position="0 2.5 0" align="center" color="white"></a-text>
-        </a-entity>
-
-        <a-entity gps-entity-place="latitude: 3.5444022329295355; longitude: 103.43162607338732" geometry="primitive: box; height: 2; width: 2; depth: 2" material="color: blue;">
-            <a-text value="Ditec UMPSA" position="0 2.5 0" align="center" color="white"></a-text>
-        </a-entity>
-
-        <a-entity gps-entity-place="latitude: 3.5395406456778633; longitude: 103.4310681740305" geometry="primitive: box; height: 2; width: 2; depth: 2" material="color: yellow;">
-            <a-text value="FTKEE Cafe" position="0 2.5 0" align="center" color="white"></a-text>
-        </a-entity>
-
-        <a-entity gps-entity-place="latitude: 3.539176561005007; longitude: 103.42781733683893" geometry="primitive: box; height: 2; width: 2; depth: 2" material="color: orange;">
-            <a-text value="PAP" position="0 2.5 0" align="center" color="white"></a-text>
-        </a-entity>
-
-        <a-entity gps-entity-place="latitude: 3.541152253948052; longitude: 103.42994164632783" geometry="primitive: box; height: 2; width: 2; depth: 2" material="color: purple;">
-            <a-text value="Dewan Serbaguna" position="0 2.5 0" align="center" color="white"></a-text>
-        </a-entity>
-
-        <a-entity gps-entity-place="latitude: 3.5389632623719502; longitude: 103.42746000826024" geometry="primitive: box; height: 2; width: 2; depth: 2" material="color: pink;">
-            <a-text value="He & She" position="0 2.5 0" align="center" color="white"></a-text>
-        </a-entity>
-
-        <a-entity gps-entity-place="latitude: 3.5382039072479077; longitude: 103.42795100526111" geometry="primitive: box; height: 2; width: 2; depth: 2" material="color: cyan;">
-            <a-text value="KK5 Basketball Court" position="0 2.5 0" align="center" color="white"></a-text>
-        </a-entity>
-
-        <a-entity gps-entity-place="latitude: 3.5427684944699585; longitude: 103.43133217957656" geometry="primitive: box; height: 2; width: 2; depth: 2" material="color: brown;">
-            <a-text value="Library" position="0 2.5 0" align="center" color="white"></a-text>
-        </a-entity>
-
-        <a-entity gps-entity-place="latitude: 3.5487033301435926; longitude: 103.43386164772174" geometry="primitive: box; height: 2; width: 2; depth: 2" material="color: gray;">
-            <a-text value="University Health Centre" position="0 2.5 0" align="center" color="white"></a-text>
+        <!-- Example AR Navigation Arrow -->
+        <a-entity 
+            gps-entity-place="latitude: 3.5424; longitude: 103.4251"
+            geometry="primitive: cone; radiusBottom: 0.5; height: 1"
+            material="color: red"
+            scale="1 1 1"
+            rotation="-90 0 0">
         </a-entity>
     </a-scene>
 
-    <div id="searchContainer">
-        <input type="text" id="destination" placeholder="Enter destination">
-        <button id="searchButton">Search</button>
-        <div id="eta"></div>
-    </div>
+    <!-- Google Maps Container -->
+    <div id="map"></div>
+    <div id="info">Searching for your destination...</div>
 
-    <!-- ETA and Menu -->
-    <div class="absolute top-4 left-4 bg-black bg-opacity-50 text-white p-2 rounded-md flex items-center space-x-2 z-10">
-        <i class="fas fa-bars text-xl"></i>
-        <div>
-            <div class="text-sm">ETA 3:05PM</div>
-            <div class="text-xs">14 min</div>
-        </div>
-    </div>
-    <!-- Turn Right Information -->
-    <div class="absolute top-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded-md flex items-center space-x-2 z-10">
-        <div class="text-right">
-            <div class="text-xs">50 ft</div>
-            <div class="text-sm">Turn right on</div>
-            <div class="text-lg font-bold">Smithe St</div>
-        </div>
-        <i class="fas fa-arrow-right text-xl"></i>
-    </div>
-    <!-- Navigation Arrow -->
-    <div class="absolute inset-0 flex justify-center items-center z-10">
-        <div class="relative">
-            <i class="fas fa-arrow-circle-right text-6xl text-green-500"></i>
-            <div class="absolute inset-0 flex justify-center items-center">
-                <i class="fas fa-arrow-right text-2xl text-white"></i>
-            </div>
-        </div>
-    </div>
-    <!-- Navigation Path -->
-    <div class="absolute inset-0 flex justify-center items-center z-0">
-        <div class="flex flex-col items-center space-y-2">
-            <div class="w-16 h-16 bg-green-500 opacity-75"></div>
-            <div class="w-16 h-16 bg-green-500 opacity-75"></div>
-            <div class="w-16 h-16 bg-green-500 opacity-75"></div>
-            <div class="w-16 h-16 bg-green-500 opacity-75"></div>
-            <div class="w-16 h-16 bg-green-500 opacity-75"></div>
-        </div>
-    </div>
-    <!-- Bottom Information -->
-    <div class="absolute bottom-4 left-4 text-white text-xl z-10">2:51PM</div>
-    <!-- Signal and Battery -->
-    <div class="absolute bottom-4 right-4 flex items-center space-x-2 text-white z-10">
-        <i class="fas fa-signal"></i>
-        <i class="fas fa-battery-full"></i>
-    </div>
-    <!-- Compass -->
-    <div class="absolute bottom-4 right-1/2 transform translate-x-1/2 flex items-center space-x-2 text-white z-10">
-        <div class="relative">
-            <i class="fas fa-compass text-4xl"></i>
-            <div class="absolute inset-0 flex justify-center items-center">
-                <i class="fas fa-arrow-up text-xl text-red-500"></i>
-            </div>
-        </div>
-    </div>
+    <!-- Script -->
+    <script>
+        let map;
+        let userLat = 3.5424, userLng = 103.4251; // Default user location (fallback)
+
+        // Load Google Map
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: userLat, lng: userLng },
+                zoom: 14
+            });
+            
+            // Mark user's location
+            new google.maps.Marker({
+                position: { lat: userLat, lng: userLng },
+                map: map,
+                title: "You are here"
+            });
+
+            // Place AR navigation objects
+            placeARNavigation();
+        }
+
+        // Function to Place AR.js Navigation Arrow
+        function placeARNavigation() {
+            const destinationLat = 3.5430; // Example destination latitude
+            const destinationLng = 103.4280; // Example destination longitude
+            
+            document.querySelector('a-entity').setAttribute('gps-entity-place', 
+                `latitude: ${destinationLat}; longitude: ${destinationLng}`);
+            
+            document.getElementById('info').textContent = "Destination set. Follow the arrow!";
+        }
+
+        // Update User Location Using Geolocation API
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                userLat = position.coords.latitude;
+                userLng = position.coords.longitude;
+                initMap();
+            }, () => {
+                alert("Unable to fetch location. Using default coordinates.");
+                initMap();
+            });
+        } else {
+            alert("Geolocation not supported. Using default coordinates.");
+            initMap();
+        }
+    </script>
 </body>
 </html>
