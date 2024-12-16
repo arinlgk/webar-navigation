@@ -15,8 +15,57 @@
 
     <style>
         body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
+        #searchContainer {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 9999;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #destination {
+            padding: 10px;
+            width: 250px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        #searchButton {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        #searchButton:hover {
+            background-color: #0056b3;
+        }
+        #eta {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #333;
+        }
         #map { height: 100px; width: 100%; position: absolute; top: 10px; z-index: 999; }
         #info { position: absolute; bottom: 10px; left: 10px; z-index: 999; color: white; font-size: 1.2em; }
+        
+        /* Responsive Styles */
+        @media (max-width: 600px) {
+            #searchContainer {
+                width: 90%;
+                left: 5%;
+                top: 5px;
+            }
+            #destination {
+                width: calc(100% - 20px);
+            }
+        }
     </style>
 </head>
 <body>
@@ -27,13 +76,20 @@
 
         <!-- Example AR Navigation Arrow -->
         <a-entity 
-            gps-entity-place="latitude: 3.5424; longitude: 103.4251"
+            id="navigation-arrow"
             geometry="primitive: cone; radiusBottom: 0.5; height: 1"
             material="color: red"
             scale="1 1 1"
             rotation="-90 0 0">
         </a-entity>
     </a-scene>
+
+    <!-- Search Container -->
+    <div id="searchContainer">
+        <input type="text" id="destination" placeholder="Enter destination">
+        <button id="searchButton">Search</button>
+        <div id="eta"></div>
+    </div>
 
     <!-- Google Maps Container -->
     <div id="map"></div>
@@ -57,20 +113,26 @@
                 map: map,
                 title: "You are here"
             });
-
-            // Place AR navigation objects
-            placeARNavigation();
         }
 
         // Function to Place AR.js Navigation Arrow
-        function placeARNavigation() {
-            const destinationLat = 3.5430; // Example destination latitude
-            const destinationLng = 103.4280; // Example destination longitude
-            
-            document.querySelector('a-entity').setAttribute('gps-entity-place', 
-                `latitude: ${destinationLat}; longitude: ${destinationLng}`);
-            
+        function placeARNavigation(destinationLat, destinationLng) {
+            const arrow = document.getElementById('navigation-arrow');
+            arrow.setAttribute('gps-entity-place', `latitude: ${destinationLat}; longitude: ${destinationLng}`);
             document.getElementById('info').textContent = "Destination set. Follow the arrow!";
+        }
+
+        // Function to calculate the distance between two coordinates
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of the Earth in km
+            const dLat = (lat2 - lat1) * (Math.PI / 180);
+            const dLon = (lon2 - lon1) * (Math.PI / 180);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const distance = R * c; // Distance in km
+            return distance;
         }
 
         // Update User Location Using Geolocation API
@@ -87,6 +149,31 @@
             alert("Geolocation not supported. Using default coordinates.");
             initMap();
         }
+
+        // Event listener for the search button
+        document.getElementById('searchButton').addEventListener('click', () => {
+            const destinationName = document.getElementById('destination').value.trim();
+            const geocoder = new google.maps.Geocoder();
+
+            geocoder.geocode({ 'address': destinationName }, function(results, status) {
+                if (status === 'OK') {
+                    const destinationCoords = results[0].geometry.location;
+                    const destLat = destinationCoords.lat();
+                    const destLon = destinationCoords.lng();
+
+                    // Calculate and display ETA
+                    const distance = calculateDistance(userLat, userLng, destLat, destLon);
+                    const speed = 5; // Assume walking speed in km/h
+                    const eta = distance / speed;
+                    document.getElementById('eta').textContent = `ETA: ${eta.toFixed(2)} hours`;
+
+                    // Update arrow path dynamically
+                    placeARNavigation(destLat, destLon);
+                } else {
+                    alert('Location not found. Please try again.');
+                }
+            });
+        });
     </script>
 </body>
 </html>
