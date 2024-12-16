@@ -137,7 +137,7 @@
 
         // Update User Location Using Geolocation API
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(position => {
+            navigator.geolocation.watchPosition(position => {
                 userLat = position.coords.latitude;
                 userLng = position.coords.longitude;
                 initMap();
