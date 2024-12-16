@@ -41,6 +41,11 @@
         #searchButton:hover {
             background-color: #0056b3;
         }
+        #eta {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #333;
+        }
         
         /* Responsive Styles */
         @media (max-width: 600px) {
@@ -59,6 +64,7 @@
             const arrow = document.getElementById('navigation-arrow');
             const searchButton = document.getElementById('searchButton');
             const destinationInput = document.getElementById('destination');
+            const etaDisplay = document.getElementById('eta');
 
             arrow.setAttribute('visible', false); // Hide the arrow initially
 
@@ -81,12 +87,16 @@
             // Function to update user's location
             function updateLocation() {
                 if (navigator.geolocation) {
- navigator.geolocation.getCurrentPosition(position => {
+                    navigator.geolocation.getCurrentPosition(position => {
                         userLatitude = position.coords.latitude;
                         userLongitude = position.coords.longitude;
-                        console.log(`User 's Location: ${userLatitude}, ${userLongitude}`);
+                        console.log(`User's Location: ${userLatitude}, ${userLongitude}`);
                     }, error => {
                         console.error("Error getting location: ", error);
+                        // Use mock data for testing purposes
+                        userLatitude = 3.5424105381833333;
+                        userLongitude = 103.42519353920233;
+                        console.log("Using mock location data.");
                     });
                 } else {
                     alert("Geolocation is not supported by this browser.");
@@ -99,6 +109,10 @@
                 userLongitude = position.coords.longitude;
             }, error => {
                 console.error("Error watching location: ", error);
+                // Use mock data for testing purposes
+                userLatitude = 3.5424105381833333;
+                userLongitude = 103.42519353920233;
+                console.log("Using mock location data.");
             });
 
             // Event listener for the search button
@@ -116,6 +130,15 @@
                     // Rotate the arrow to point towards the destination
                     const heading = calculateHeading(userLatitude, userLongitude, latitude, longitude);
                     arrow.setAttribute('rotation', `0 ${heading} 0`);
+
+                    // Calculate and display ETA
+                    const distance = calculateDistance(userLatitude, userLongitude, latitude, longitude);
+                    const speed = 5; // Assume walking speed in km/h
+                    const eta = distance / speed;
+                    etaDisplay.textContent = `ETA: ${eta.toFixed(2)} hours`;
+
+                    // Update arrow position and rotation dynamically
+                    updateArrowPositionAndRotation(latitude, longitude);
                 } else {
                     alert('Location not found. Please try again.');
                 }
@@ -130,6 +153,36 @@
                 const x = Math.cos(toRadians(userLat)) * Math.sin(toRadians(destLat)) - Math.sin(toRadians(userLat)) * Math.cos(toRadians(destLat)) * Math.cos(toRadians(destLon - userLon));
                 const heading = Math.atan2(y, x) * (180 / Math.PI); // Convert radians to degrees
                 return (heading + 360) % 360; // Normalize to 0-360 degrees
+            }
+
+            // Function to calculate the distance between two coordinates
+            function calculateDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371; // Radius of the Earth in km
+                const dLat = (lat2 - lat1) * (Math.PI / 180);
+                const dLon = (lon2 - lon1) * (Math.PI / 180);
+                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                          Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+                          Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                const distance = R * c; // Distance in km
+                return distance;
+            }
+
+            // Function to update arrow position and rotation dynamically
+            function updateArrowPositionAndRotation(destLat, destLon) {
+                const interval = setInterval(() => {
+                    if (userLatitude && userLongitude) {
+                        const heading = calculateHeading(userLatitude, userLongitude, destLat, destLon);
+                        arrow.setAttribute('rotation', `0 ${heading} 0`);
+
+                        const distance = calculateDistance(userLatitude, userLongitude, destLat, destLon);
+                        if (distance < 0.05) { // If the user is within 50 meters of the destination
+                            clearInterval(interval);
+                            arrow.setAttribute('visible', false);
+                            etaDisplay.textContent = 'You have arrived at your destination.';
+                        }
+                    }
+                }, 1000); // Update every second
             }
 
             // Initial location update
@@ -284,6 +337,8 @@
     <div id="searchContainer">
         <input type="text" id="destination" placeholder="Enter destination">
         <button id="searchButton">Search</button>
+        <div id="eta"></div>
     </div>
 </body>
+</html>
 </html>
